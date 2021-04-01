@@ -29,23 +29,23 @@ class DangerousUI(Tk):
         # Main UI ------------------------------------------------------------------------------------------------------
 
         # Top label
-        self.label_text = Label(text="", font=label_font)
-        self.label_text.grid(column=1, row=0)
-        self.label_count = Label(text="Start writing and don't stop!", font=label_font)
+        self.label_count = Label(text="Character count: 000/100", font=label_font, justify=LEFT)
         self.label_count.grid(column=0, row=0)
+        self.label_text = Label(text="Time remaining: 00:10", font=label_font)
+        self.label_text.grid(column=1, row=0)
         # Text field
         self.text = Text(self, width=100, height=20, wrap="word")
-        self.text.grid(column=0, row=2, sticky="NSEW")
+        self.text.grid(column=0, row=2, columnspan=2, sticky="NSEW")
         self.text.configure(font=text_font)
         self.text.focus_set()
         # progress bar
         self.seconds = seconds
         self.update_interval = 0.01
         self.progress_bar = Progressbar(self, orient=HORIZONTAL, length=100, mode="determinate")
-        self.progress_bar.grid(column=0, row=1, pady=10, sticky="NSEW")
+        self.progress_bar.grid(column=0, row=1, pady=10, columnspan=2, sticky="NSEW")
         # Test button
         self.button = Button(self, text="Test", command=self.time_it)
-        self.button.grid(column=0, row=3, pady=10, sticky="NSEW")
+        self.button.grid(column=0, row=3, pady=10, columnspan=2, sticky="NSEW")
 
         # Keypress detection -------------------------------------------------------------------------------------------
 
@@ -89,7 +89,7 @@ class DangerousUI(Tk):
         return num_of_chars
 
     def update_label_count(self, num_of_chars):
-        self.label_count.config(text=f"{format(num_of_chars, '03d')}/{format(self.chars_to_safepoint, '03d')}")
+        self.label_count.config(text=f"Character count: {format(num_of_chars, '03d')}/{format(self.chars_to_safepoint, '03d')}")
 
     def delete_text(self):
         # Only characters after the current safe_point will be deleted
@@ -124,7 +124,7 @@ class DangerousUI(Tk):
                 minutes = int((time_remaining) / 60)
                 seconds = int((time_remaining) % 60)
             # Update countdown label
-            self.label_text.config(text=f"{format(minutes, '02d')}:{format(seconds, '02d')}")
+            self.label_text.config(text=f"Time remaining: {format(minutes, '02d')}:{format(seconds, '02d')}")
             # Update progress bar
             # self.progress_bar["value"] += step_size
             progress = 100 - (time_remaining / full_time * 100)
