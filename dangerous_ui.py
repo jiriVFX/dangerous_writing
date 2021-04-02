@@ -1,11 +1,9 @@
 from tkinter import *
 from tkinter.ttk import *
 import time
-from concurrent.futures import ThreadPoolExecutor
-from concurrent.futures import ProcessPoolExecutor
 
 # Number of characters to be written to save progress
-CHARS_TO_SAFEPOINT = 100
+WORDS_TO_SAFEPOINT = 100
 
 
 # UI -------------------------------------------------------------------------------------------------------------------
@@ -29,10 +27,10 @@ class DangerousUI(Tk):
         # Main UI ------------------------------------------------------------------------------------------------------
 
         # Top label
-        self.label_count = Label(text="Character count: 000/100", font=label_font, justify=LEFT)
-        self.label_count.grid(column=0, row=0)
+        self.label_count = Label(text="Word count: 000/100", font=label_font)
+        self.label_count.grid(column=0, row=0, sticky="W")
         self.label_text = Label(text="Time remaining: 00:10", font=label_font)
-        self.label_text.grid(column=1, row=0)
+        self.label_text.grid(column=1, row=0, sticky="E")
         # Text field
         self.text = Text(self, width=100, height=20, wrap="word")
         self.text.grid(column=0, row=2, columnspan=2, sticky="NSEW")
@@ -57,12 +55,11 @@ class DangerousUI(Tk):
 
         self.run = True
         self.safe_point = None
-        self.chars_to_safepoint = CHARS_TO_SAFEPOINT
+        self.words_to_safepoint = WORDS_TO_SAFEPOINT
 
     # Timer ------------------------------------------------------------------------------------------------------------
 
     def time_it(self):
-        # When starting new countdown, stop the previous one
         # Progress bar increment step size 100% / time * update interval (time.sleep() value)
         # Doesn't work, with low update intervals, progress bar is filled slower than the time expires
         # step_size = 100 / self.seconds * self.update_interval
@@ -72,41 +69,66 @@ class DangerousUI(Tk):
         self.countdown()
 
     def check_safepoint(self):
-        num_of_chars = self.count_characters()
+        """Checks whether the safe point was reached. In case it was, creates new safe point in self.safe_point
+        and sets the new value for self.words_to_safepoint."""
+        num_of_words = self.count_words()
 
-        if num_of_chars == self.chars_to_safepoint:
+        if num_of_words == self.words_to_safepoint:
             print("Safepoint reached!")
-            # Index of current safepoint
-            self.safe_point = self.text.index("end-1c")
+            # Get last word's length
+            word_length = self.last_word_length() + 1
+            print(f"Word length: {word_length}")
+            # Assign the index of the last character of the last full word to safepoint
+            # index = end - number of characters of the last unfinished word
+            self.safe_point = self.text.index(f"end-{word_length}c")
             # Setting the next safe_point
-            self.chars_to_safepoint += CHARS_TO_SAFEPOINT
+            self.words_to_safepoint += WORDS_TO_SAFEPOINT
 
         # Update label with character count
-        self.update_label_count(num_of_chars)
+        self.update_label_count(num_of_words)
 
-    def count_characters(self):
-        num_of_chars = len(self.text.get("1.0", "end"))
-        return num_of_chars
+    def last_word_length(self):
+        """Finds the last word and returns its length
+        :rtype word_length: int"""
+        all_words = self.text.get("1.0", "end").split()
+        # Index of the last character of the last full word
+        print(f"Last word: {all_words[-1]}")
+        word_length = len(all_words[-1])
 
-    def update_label_count(self, num_of_chars):
-        self.label_count.config(text=f"Character count: {format(num_of_chars, '03d')}/{format(self.chars_to_safepoint, '03d')}")
+        return word_length
+
+    def count_words(self):
+        """Counts number of words in text box.
+        :rtype num_of_words: int"""
+        num_of_words = len(self.text.get("1.0", "end").split())
+        return num_of_words
+
+    def update_label_count(self, num_of_words):
+        """Updates label with word count
+        :type num_of_words: int"""
+        self.label_count.config(text=f"Word count: {format(num_of_words, '03d')}/{format(self.words_to_safepoint, '03d')}")
 
     def delete_text(self):
+        """Deletes text in text box from self.safe_point to the end."""
         # Only characters after the current safe_point will be deleted
         if self.safe_point:
             self.text.delete(self.safe_point, "end")
         else:
             self.text.delete("1.0", "end")
         # Update character count label
-        self.update_label_count(self.count_characters())
+        self.update_label_count(self.count_words())
 
     def stop_countdown(self):
+        """Stops countdown"""
         self.run = False
 
     def update_progressbar(self, progress):
+        """Updates progress_bar values
+        :type progress: float"""
         self.progress_bar["value"] = progress
 
     def countdown(self):
+        """Main method, keeps track of time, updates labels and deletes text after time expiration."""
         # Set self.run back to True, so new countdown can start
         self.run = True
         start = time.time()
@@ -139,4 +161,3 @@ class DangerousUI(Tk):
         if self.run:
             print("Deleting")
             self.delete_text()
-        print("Time's up!")
