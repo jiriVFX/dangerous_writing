@@ -1,7 +1,5 @@
-from dangerous_ui import DangerousUI
-
-# UI -------------------------------------------------------------------------------------------------------------------
+from dangerous_writing import DangerousWriting
 
 if __name__ == "__main__":
-    window = DangerousUI(10)
+    window = DangerousWriting()
     window.mainloop()

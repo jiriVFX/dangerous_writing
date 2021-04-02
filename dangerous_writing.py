@@ -4,11 +4,13 @@ import time
 
 # Number of characters to be written to save progress
 WORDS_TO_SAFEPOINT = 100
+# Countdown seconds
+COUNTDOWN_SECS = 10
 
 
 # UI -------------------------------------------------------------------------------------------------------------------
-class DangerousUI(Tk):
-    def __init__(self, seconds):
+class DangerousWriting(Tk):
+    def __init__(self):
         # Initialize Tk
         super().__init__()
         text_font = ("Calibri", 14, "normal")
@@ -27,9 +29,9 @@ class DangerousUI(Tk):
         # Main UI ------------------------------------------------------------------------------------------------------
 
         # Top label
-        self.label_count = Label(text="Word count: 000/100", font=label_font)
+        self.label_count = Label(text=f"Word count: 000/{WORDS_TO_SAFEPOINT}", font=label_font)
         self.label_count.grid(column=0, row=0, sticky="W")
-        self.label_text = Label(text="Time remaining: 00:10", font=label_font)
+        self.label_text = Label(text=f"Time remaining: 00:{COUNTDOWN_SECS}", font=label_font)
         self.label_text.grid(column=1, row=0, sticky="E")
         # Text field
         self.text = Text(self, width=100, height=20, wrap="word")
@@ -37,7 +39,7 @@ class DangerousUI(Tk):
         self.text.configure(font=text_font)
         self.text.focus_set()
         # progress bar
-        self.seconds = seconds
+        self.seconds = COUNTDOWN_SECS
         self.update_interval = 0.01
         self.progress_bar = Progressbar(self, orient=HORIZONTAL, length=100, mode="determinate")
         self.progress_bar.grid(column=0, row=1, pady=10, columnspan=2, sticky="NSEW")
@@ -60,6 +62,7 @@ class DangerousUI(Tk):
     # Timer ------------------------------------------------------------------------------------------------------------
 
     def time_it(self):
+        """Starts the """
         # Progress bar increment step size 100% / time * update interval (time.sleep() value)
         # Doesn't work, with low update intervals, progress bar is filled slower than the time expires
         # step_size = 100 / self.seconds * self.update_interval
@@ -73,7 +76,7 @@ class DangerousUI(Tk):
         and sets the new value for self.words_to_safepoint."""
         num_of_words = self.count_words()
 
-        if num_of_words == self.words_to_safepoint:
+        if num_of_words == self.words_to_safepoint + 1:
             print("Safepoint reached!")
             # Get last word's length
             word_length = self.last_word_length() + 1
@@ -92,7 +95,7 @@ class DangerousUI(Tk):
         :rtype word_length: int"""
         all_words = self.text.get("1.0", "end").split()
         # Index of the last character of the last full word
-        print(f"Last word: {all_words[-1]}")
+        print(f"Last words: {all_words[-2]} + {all_words[-1]}")
         word_length = len(all_words[-1])
 
         return word_length
@@ -129,7 +132,7 @@ class DangerousUI(Tk):
 
     def countdown(self):
         """Main method, keeps track of time, updates labels and deletes text after time expiration."""
-        # Set self.run back to True, so new countdown can start
+        # Set self.run back to True, so the new countdown can start
         self.run = True
         start = time.time()
         end = start + self.seconds
@@ -143,15 +146,13 @@ class DangerousUI(Tk):
             # To make sure countdown doesn't go under 00:00
             if time_remaining >= 0:
                 # Calculate remaining minutes and seconds
-                minutes = int((time_remaining) / 60)
-                seconds = int((time_remaining) % 60)
+                minutes = int(time_remaining / 60)
+                seconds = int(time_remaining % 60)
             # Update countdown label
             self.label_text.config(text=f"Time remaining: {format(minutes, '02d')}:{format(seconds, '02d')}")
             # Update progress bar
-            # self.progress_bar["value"] += step_size
             progress = 100 - (time_remaining / full_time * 100)
             self.update_progressbar(progress)
-
             # Use self.update instead of update_idletasks(), otherwise window freezes
             self.update()
             now = time.time()
