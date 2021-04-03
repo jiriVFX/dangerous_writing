@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter.ttk import *
 import time
+from datetime import date
 
 # Number of characters to be written to save progress
 WORDS_TO_SAFEPOINT = 100
@@ -44,7 +45,7 @@ class DangerousWriting(Tk):
         self.progress_bar = Progressbar(self, orient=HORIZONTAL, length=100, mode="determinate")
         self.progress_bar.grid(column=0, row=1, pady=10, columnspan=2, sticky="NSEW")
         # Test button
-        self.button = Button(self, text="Test", command=self.time_it)
+        self.button = Button(self, text="Test", command=self.save_progress)
         self.button.grid(column=0, row=3, pady=10, columnspan=2, sticky="NSEW")
 
         # Keypress detection -------------------------------------------------------------------------------------------
@@ -86,17 +87,30 @@ class DangerousWriting(Tk):
             self.safe_point = self.text.index(f"end-{word_length}c")
             # Setting the next safe_point
             self.words_to_safepoint += WORDS_TO_SAFEPOINT
+            # Save progress to a file
+            self.save_progress()
 
         # Update label with character count
         self.update_label_count(num_of_words)
+
+    def save_progress(self):
+        """Saves progress up to the current safe_point to a current_date.txt file"""
+        text_to_save = self.text.get("1.0", self.safe_point)
+        file_name = date.today()
+        with open(f"{file_name}.txt", mode="w", encoding="utf-8") as file:
+            file.write(text_to_save)
 
     def last_word_length(self):
         """Finds the last word and returns its length
         :rtype word_length: int"""
         all_words = self.text.get("1.0", "end").split()
         # Index of the last character of the last full word
-        print(f"Last words: {all_words[-2]} + {all_words[-1]}")
-        word_length = len(all_words[-1])
+        print(f"Last words: .{all_words[-2]}. + .{all_words[-1]}.")
+        # Plus 1 - in some occasions, the last word is counted after two characters instead of one
+        # For now let's delete one extra character, to make sure full words get deleted
+        # In worst case only space gets deleted
+        word_length = len(all_words[-1]) + 1
+        print(all_words)
 
         return word_length
 
