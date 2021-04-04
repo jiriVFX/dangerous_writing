@@ -44,9 +44,6 @@ class DangerousWriting(Tk):
         self.update_interval = 0.01
         self.progress_bar = Progressbar(self, orient=HORIZONTAL, length=100, mode="determinate")
         self.progress_bar.grid(column=0, row=1, pady=10, columnspan=2, sticky="NSEW")
-        # Test button
-        self.button = Button(self, text="Test", command=self.save_progress)
-        self.button.grid(column=0, row=3, pady=10, columnspan=2, sticky="NSEW")
 
         # Keypress detection -------------------------------------------------------------------------------------------
 
@@ -63,10 +60,7 @@ class DangerousWriting(Tk):
     # Timer ------------------------------------------------------------------------------------------------------------
 
     def time_it(self):
-        """Starts the """
-        # Progress bar increment step size 100% / time * update interval (time.sleep() value)
-        # Doesn't work, with low update intervals, progress bar is filled slower than the time expires
-        # step_size = 100 / self.seconds * self.update_interval
+        """Starts the countdown and checking for safepoint."""
         # Check the number of characters
         self.check_safepoint()
         # Start countdown
